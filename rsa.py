@@ -2,32 +2,32 @@ import math
 from function import *
 
 
+
 class RSA:
     
     # Enkripsi per n_char_encrypt character
     n_char_encrypt = 1
     
-    def __init__(self, p=0, q=0, e=0), n=0:
-        if is_prime(p):
-            self.p = p
-        else:
-            print("p must be a prime number")
+    def __init__(self, p=0, q=0, e=0, d=0, n=0):
+        self.p = p
+        # if not is_prime(p):
+        #     print("p must be a prime number")
             
-        if is_prime(q):
-            self.q = q
-        else:
-            print("q must be a prime number")
+        self.q = q
+        # if is_prime(q):
+        #     print("q must be a prime number")
             
-        self.n = p * q
-        if self.n < int(self.n_char_encrypt*'255'):
-            print(f"p*q must be greater than {self.n_char_encrypt*'255'}")
-        
-        if coprime2(e, self.toitent_euler()):
-            self.e = e
+        if n == 0 :
+            self.n = p * q
+            if self.n < int(self.n_char_encrypt*'255'):
+                print(f"p*q must be greater than {self.n_char_encrypt*'255'}")
         else:
-            print(f"e must be coprime with toitent_euler(p*q) = {self.toitent_euler()}")
+            self.n = n
             
-        self.d = self.find_d()
+
+        self.e = e
+            
+        self.d = d
         
         self.plain = ''
         self.cipher = ''
@@ -37,6 +37,8 @@ class RSA:
         print("p : ", self.p)
         print("q : ", self.q)
         print("n : ", self.n)
+        print("e : ", self.e)
+        print("d : ", self.d)
         print("toitent_euler(n) : ", self.toitent_euler())
         print("")
         
@@ -66,6 +68,13 @@ class RSA:
         print(f"d : {self.d} \nn : {self.n}")
         return self.d, self.n
         
+    
+    def generate_key(self):
+        list_error = []
+        if coprime2(self.e, self.toitent_euler()):
+            self.d = self.find_d()
+        else:
+            print(f"e must be coprime with toitent_euler(p*q) = {self.toitent_euler()}")
     
     
     def set_plain(self, plain):
@@ -124,14 +133,13 @@ class RSA:
         
         
 if __name__ == "__main__":
-    rsa = RSA(p=547, q=523, e=79)
+    rsa = RSA(d=14431, n=286081)
+    # rsa.generate_key()
     rsa.public_key()
     rsa.private_key()
-    rsa.set_plain('HELLO kud')
+    rsa.set_plain('HELLO')
     cipher =  rsa.encrypt()
-    print("==============================")
-    rsa.set_cipher(cipher)
-    rsa.decrypt()
+    # print("==============================")
+    # rsa.set_cipher('240205229859203623203623141282')
+    # rsa.decrypt()
     
-    
-    rsa.writeKey()

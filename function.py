@@ -15,7 +15,7 @@ def is_prime(number):   # check prime or not
 
 def bilangan_prima_ke(n):   # get n-th prime 
     prime_count = 0
-    i = 0
+    i = 1
     while prime_count < n:
         i += 1
         if (is_prime(i)):

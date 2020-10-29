@@ -60,4 +60,7 @@ def readPublicPrivateKey(filename):
     data = f.read()
     data = data.split(',')
     f.close()
-    return data[0], data[1]
+    if len(data) == 2 :
+        return data[0], data[1]
+    if len(data) == 3 :
+        return data[0], data[1], data[2]

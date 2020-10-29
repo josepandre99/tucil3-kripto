@@ -2,6 +2,8 @@ from PyQt5 import QtWidgets, uic
 from function import *
 from rsa import *
 from diffie_hellman import *
+from elgamal import *
+import re
 
 
 # init GUI
@@ -10,9 +12,9 @@ call = uic.loadUi("GUI.ui")
 
 
 # set default
-# default value : encryption in rsa
+# default value : encryption in rsa, encryption in elgamal
 call.radioButton_enkripsi_rsa.setChecked(True)
-
+call.radioButton_enkripsi_elgamal.setChecked(True)
 
 # tab generate key rsa
 def get_prima_ke_n():
@@ -92,6 +94,89 @@ def enkrip_dekrip_rsa():
         output_text = rsa.decrypt()
     call.textEdit_output_rsa.setText(output_text)
 
+# tab generate key elgamal
+def generate_elgamal_key() :
+    p = int(call.lineEdit_p_elgamal.text())
+    g = int(call.lineEdit_g_elgamal.text())
+    x = int(call.lineEdit_x_elgamal.text())
+    elgamal = ElGamal(p, g, x)
+    elgamal.generate_key()
+    y, _, _ = elgamal.public_key()
+    call.lineEdit_y_elgamal.setText(str(y))
+
+def save_public_key_elgamal():
+    y = int(call.lineEdit_y_elgamal.text())
+    g = int(call.lineEdit_g_elgamal.text())
+    p = int(call.lineEdit_p_elgamal.text())
+    data_public_key = str(y) + "," + str(g) + "," + str(p)
+    filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save File', '', "Public key files (*.pub)")
+    print(filename[0])
+    try:
+        writeFileText(filename[0], data_public_key)
+    except:
+        pass
+    
+def save_private_key_elgamal():
+    x = int(call.lineEdit_x_elgamal.text())
+    p = int(call.lineEdit_p_elgamal.text())
+    data_private_key = str(x) + "," + str(p)
+    filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save File', '', "Private key files (*.pri)")
+    try:
+        writeFileText(filename[0], data_private_key)
+    except:
+        pass
+
+# tab enkripsi/dekripsi elgamal
+def load_pubkey_elgamal():
+    filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open File', '')
+    try:
+        y,g,p = readPublicPrivateKey(filename[0])
+        call.lineEdit_ygp_elgamal.setText(str(y)+","+str(g)+","+str(p))
+    except:
+        pass
+
+def load_prikey_elgamal():
+    filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open File', '')
+    try:
+        x,p = readPublicPrivateKey(filename[0])
+        call.lineEdit_xp_elgamal.setText(str(x)+","+str(p))
+    except:
+        pass
+
+def load_file_input_elgamal():
+    filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Open File', '')
+    try:
+        input_text = readFile(filename[0])
+        call.textEdit_input_elgamal.setText(input_text)
+    except:
+        pass
+    
+def save_file_output_elgamal():
+    filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save File', '')
+    output_text = call.textEdit_output_elgamal.toPlainText()
+    writeFile(filename[0], output_text)
+
+def enkrip_dekrip_elgamal():
+    ygp = re.findall(r'\d+', call.lineEdit_ygp_elgamal.text())
+    y = int(ygp[0])
+    g = int(ygp[1])
+    p = int(ygp[2])
+    xp = re.findall(r'\d+', call.lineEdit_xp_elgamal.text())
+    x = int(xp[0])
+    k = int(call.lineEdit_k_elgamal.text())
+    input_text = call.textEdit_input_elgamal.toPlainText()
+    output_text = ''
+    if call.radioButton_enkripsi_elgamal.isChecked():   # enkripsi
+        print("Enkripsi")
+        elgamal = ElGamal(p,g,x,y=y)
+        elgamal.set_plain(input_text)
+        output_text = elgamal.encrypt(k)
+    else:   # dekripsi
+        print("Dekripsi")
+        elgamal = ElGamal(p,g,x,y=y)
+        elgamal.set_cipher(input_text)
+        output_text = elgamal.decrypt()
+    call.textEdit_output_elgamal.setText(output_text)
 
 # generate key diffie-hellman
 def generate_dh_key():
@@ -126,6 +211,23 @@ call.pushButton_load_file_rsa.clicked.connect(load_file_input_rsa)
 call.pushButton_save_file_rsa.clicked.connect(save_file_output_rsa)
 # enkrip/dekrip rsa
 call.pushButton_enkrip_dekrip_rsa.clicked.connect(enkrip_dekrip_rsa)
+
+# generate elgamal key
+call.pushButton_generate_elgamal.clicked.connect(generate_elgamal_key)
+# save elgamal public key
+call.pushButton_save_public_key_elgamal.clicked.connect(save_public_key_elgamal)
+# save elgamal private key
+call.pushButton_save_private_key_elgamal.clicked.connect(save_private_key_elgamal)
+# load public key elgamal
+call.pushButton_load_pubkey_elgamal.clicked.connect(load_pubkey_elgamal)
+# load private key elgamal
+call.pushButton_load_prikey_elgamal.clicked.connect(load_prikey_elgamal)
+# load file input elgamal
+call.pushButton_load_file_elgamal.clicked.connect(load_file_input_elgamal)
+# save file output elgamal
+call.pushButton_save_file_elgamal.clicked.connect(save_file_output_elgamal)
+# enkrip/dekrip elgamal
+call.pushButton_enkrip_dekrip_elgamal.clicked.connect(enkrip_dekrip_elgamal)
 
 
 # click button diffie-hellman

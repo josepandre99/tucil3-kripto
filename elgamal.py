@@ -6,33 +6,38 @@ class ElGamal :
 
     n_char_encrypt = 1
 
-    def __init__(self, p, g, x, k):
+    def __init__(self, p, g, x, y=0):
+        print(f"p : {p}")
+        print(f"g : {g}")
+        print(f"x : {x}")
+        print(f"y : {y}")
+
         if not is_prime(p) :
             print("p must be a prime number")
         if g >= p :
             print("g must be smaller than p")
         if (x < 1) or (x > (p-2)) :
             print("x must be in 1 =< x =< p-2")
-        if (k < 1) or (k > (p-2)) :
-            print("k must be in 1 =< k =< p-2")
 
         self.p = p
         self.g = g
         self.x = x
-        self.k = k
+        self.y = y
 
         print(f"p : {p}")
         print(f"g : {g}")
         print(f"x : {x}")
-        print(f"k : {k}\n")
+        print(f"y : {y}")
 
     def public_key(self) :
         print("Kunci public :")
         print(f"y : {self.y} \ng : {self.g} \np : {self.p}")
+        return self.y, self.g, self.p
 
     def private_key(self) :
         print("Kunci private :")
         print(f"x : {self.x} \np : {self.p}")
+        return self.x, self.p
 
     def generate_key(self) :
         self.y = (self.g ** self.x) % self.p
@@ -56,7 +61,13 @@ class ElGamal :
         writeFileText('elgamal.pub', data_public_key)
         writeFileText('elgamal.pri', data_private_key)
 
-    def encrypt(self) :
+    def encrypt(self, k) :
+
+        if (k < 1) or (k > (self.p-2)) :
+            print("k must be in 1 =< k =< p-2")
+
+        self.k = k
+
         m = ''
         for i in self.plain :
             m += str(ord(i)).zfill(3)
@@ -110,9 +121,9 @@ class ElGamal :
 
 
 if __name__ == "__main__":
-    elgamal = ElGamal(2357, 2, 1751, 1520)
+    elgamal = ElGamal(2357, 2, 1751)
     elgamal.set_plain("HELLO ALICE")
     elgamal.generate_key()
-    cipher = elgamal.encrypt()
+    cipher = elgamal.encrypt(1520)
     plain = elgamal.decrypt()
 

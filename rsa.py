@@ -70,7 +70,7 @@ class RSA:
         
     
     def generate_key(self):
-        list_error = []
+        # list_error = []
         if coprime2(self.e, self.toitent_euler()):
             self.d = self.find_d()
         else:

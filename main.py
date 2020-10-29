@@ -4,6 +4,8 @@ from rsa import *
 from diffie_hellman import *
 from elgamal import *
 import re
+import time
+import os
 
 
 # init GUI
@@ -26,11 +28,31 @@ def generate_rsa_key():
     p = int(call.lineEdit_p_rsa.text())
     q = int(call.lineEdit_q_rsa.text())
     e = int(call.lineEdit_e_rsa.text())
-    rsa = RSA(p, q, e)
-    rsa.generate_key()
-    d, n = rsa.private_key()
-    call.lineEdit_d_rsa.setText(str(d))
-    call.lineEdit_n_rsa.setText(str(n))
+    message = []
+    if not is_prime(p):
+        message.append("p harus prima")
+    if not is_prime(q):
+        message.append("q harus prima")
+    if not coprime2(e, (p-1)*(q-1)):
+        message.append(f"e harus relatif prima terhadap (p-1)*(q-1) = {(p-1)*(q-1)}")
+    
+    if message:
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setWindowTitle("Error Message")
+        all_message = ""
+        for m in message:
+            all_message += f"‣ {m}\n"
+        print(all_message)
+        msg.setText(all_message)
+        msg.exec()
+    else:
+        rsa = RSA(p, q, e)
+        rsa.generate_key()
+        d, n = rsa.private_key()
+        call.lineEdit_d_rsa.setText(str(d))
+        call.lineEdit_n_rsa.setText(str(n))
+    
     
 def save_public_key_rsa():
     e = int(call.lineEdit_e_rsa.text())
@@ -69,6 +91,7 @@ def load_file_input_rsa():
     try:
         input_text = readFile(filename[0])
         call.textEdit_input_rsa.setText(input_text)
+        call.textEdit_output_rsa.setText('')
     except:
         pass
     
@@ -82,6 +105,7 @@ def enkrip_dekrip_rsa():
     n_ed = int(call.lineEdit_n_ende_rsa.text())
     input_text = call.textEdit_input_rsa.toPlainText()
     output_text = ''
+    start = time.time()
     if call.radioButton_enkripsi_rsa.isChecked():   # enkripsi
         print("Enkripsi")
         rsa = RSA(e=e_or_d, n=n_ed)
@@ -92,17 +116,47 @@ def enkrip_dekrip_rsa():
         rsa = RSA(d=e_or_d, n=n_ed)
         rsa.set_cipher(input_text)
         output_text = rsa.decrypt()
+    end = time.time() 
     call.textEdit_output_rsa.setText(output_text)
+    writeFile("tempfile", output_text)
+    file_size = os.path.getsize("tempfile")
+    os.remove("tempfile")
+    msg = QtWidgets.QMessageBox()
+    msg.setIcon(QtWidgets.QMessageBox.Information)
+    msg.setWindowTitle("Informasi Enkripsi/Dekripsi")
+    msg.setText(f"Waktu ensekusi : {end - start} second")
+    msg.setInformativeText(f"Ukuran file : {file_size} bytes")
+    msg.exec()
 
 # tab generate key elgamal
 def generate_elgamal_key() :
     p = int(call.lineEdit_p_elgamal.text())
     g = int(call.lineEdit_g_elgamal.text())
     x = int(call.lineEdit_x_elgamal.text())
-    elgamal = ElGamal(p, g, x)
-    elgamal.generate_key()
-    y, _, _ = elgamal.public_key()
-    call.lineEdit_y_elgamal.setText(str(y))
+    message = []
+    if not is_prime(p):
+        message.append("p harus prima")
+    if not g < p:
+        message.append("g harus lebih kecil dari p")
+    if not (x >= 1 and x <= p-2):
+        message.append("x harus berada antara 1 <= x <= p – 2")
+    
+    if message:
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setWindowTitle("Error Message")
+        all_message = ""
+        for m in message:
+            all_message += f"‣ {m}\n"
+        print(all_message)
+        msg.setText(all_message)
+        msg.exec()
+    else:
+        elgamal = ElGamal(p, g, x)
+        elgamal.generate_key()
+        y, _, _ = elgamal.public_key()
+        call.lineEdit_y_elgamal.setText(str(y))
+        
 
 def save_public_key_elgamal():
     y = int(call.lineEdit_y_elgamal.text())
@@ -148,6 +202,7 @@ def load_file_input_elgamal():
     try:
         input_text = readFile(filename[0])
         call.textEdit_input_elgamal.setText(input_text)
+        call.textEdit_output_elgamal.setText('')
     except:
         pass
     
@@ -157,26 +212,63 @@ def save_file_output_elgamal():
     writeFile(filename[0], output_text)
 
 def enkrip_dekrip_elgamal():
-    ygp = re.findall(r'\d+', call.lineEdit_ygp_elgamal.text())
-    y = int(ygp[0])
-    g = int(ygp[1])
-    p = int(ygp[2])
-    xp = re.findall(r'\d+', call.lineEdit_xp_elgamal.text())
-    x = int(xp[0])
     k = int(call.lineEdit_k_elgamal.text())
     input_text = call.textEdit_input_elgamal.toPlainText()
     output_text = ''
+    message = []
+    start = time.time()
     if call.radioButton_enkripsi_elgamal.isChecked():   # enkripsi
         print("Enkripsi")
-        elgamal = ElGamal(p,g,x,y=y)
+        ygp = re.findall(r'\d+', call.lineEdit_ygp_elgamal.text())
+        y = int(ygp[0])
+        g = int(ygp[1])
+        p = int(ygp[2])
+        if not is_prime(p):
+            message.append("p harus prima")
+        if not g < p:
+            message.append("g harus lebih kecil dari p")
+        if not (k >= 1 and k <= p-2):
+            message.append("k harus berada antara 1 <= k <= p – 2")    
+        elgamal = ElGamal(p,g,x=0,y=y)
         elgamal.set_plain(input_text)
         output_text = elgamal.encrypt(k)
     else:   # dekripsi
         print("Dekripsi")
-        elgamal = ElGamal(p,g,x,y=y)
+        xp = re.findall(r'\d+', call.lineEdit_xp_elgamal.text())
+        x = int(xp[0])
+        p = int(xp[1])
+        if not is_prime(p):
+            message.append("p harus prima")
+        if not (x >= 1 and x <= p-2):
+            message.append("x harus berada antara 1 <= x <= p – 2")
+        if not (k >= 1 and k <= p-2):
+            message.append("k harus berada antara 1 <= k <= p – 2")    
+        elgamal = ElGamal(p,g=0,x=x,y=0)
         elgamal.set_cipher(input_text)
         output_text = elgamal.decrypt()
-    call.textEdit_output_elgamal.setText(output_text)
+    end = time.time() 
+    if message:
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setWindowTitle("Error Message")
+        all_message = ""
+        for m in message:
+            all_message += f"‣ {m}\n"
+        print(all_message)
+        msg.setText(all_message)
+        msg.exec()
+    else:
+        call.textEdit_output_elgamal.setText(output_text)
+        writeFile("tempfile", output_text)
+        file_size = os.path.getsize("tempfile")
+        os.remove("tempfile")
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setWindowTitle("Informasi Enkripsi/Dekripsi")
+        msg.setText(f"Waktu ensekusi : {end - start} second")
+        msg.setInformativeText(f"Ukuran file : {file_size} bytes")
+        msg.exec()
+        
 
 # generate key diffie-hellman
 def generate_dh_key():
@@ -184,12 +276,38 @@ def generate_dh_key():
     g = int(call.lineEdit_g_dh.text())
     x = int(call.lineEdit_x_dh.text())
     y = int(call.lineEdit_y_dh.text())
-
-    dh = Diffie_Hellman(n, g, x, y)
-    _, _, K, K_dash = dh.generate_key()
+    message = []
+    if not is_prime(n):
+        message.append("n harus prima")
+    if not is_prime(g):
+        message.append("g harus prima")
+    if not g < n:
+        message.append("g harus leboh kecil dari n")
     
-    call.lineEdit_K_dh.setText(str(K))
-    call.lineEdit_Kdash_dh.setText(str(K_dash))
+    if message:
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setWindowTitle("Error Message")
+        all_message = ""
+        for m in message:
+            all_message += f"‣ {m}\n"
+        print(all_message)
+        msg.setText(all_message)
+        msg.exec()
+    else:
+        dh = Diffie_Hellman(n, g, x, y)
+        _, _, K, K_dash = dh.generate_key()
+        
+        call.lineEdit_K_dh.setText(str(K))
+        call.lineEdit_Kdash_dh.setText(str(K_dash))
+    
+def save_dh_key():
+    K = call.lineEdit_K_dh.text()
+    filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save File', '', "Private key files (*.key)")
+    try:
+        writeFileText(filename[0], str(K))
+    except:
+        pass
 
 
 
@@ -233,6 +351,8 @@ call.pushButton_enkrip_dekrip_elgamal.clicked.connect(enkrip_dekrip_elgamal)
 # click button diffie-hellman
 # generate key diffie-hellman
 call.pushButton_generate_dh.clicked.connect(generate_dh_key)
+# save key diffie-hellman
+call.pushButton_save_key_dh.clicked.connect(save_dh_key)
 
 
 

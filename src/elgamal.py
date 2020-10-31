@@ -42,7 +42,7 @@ class ElGamal :
     def generate_key(self) :
         self.y = (self.g ** self.x) % self.p
 
-        ElGamal.writeKey(self)
+        # ElGamal.writeKey(self)
         ElGamal.public_key(self)
         ElGamal.private_key(self)
 

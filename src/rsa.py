@@ -111,6 +111,7 @@ class RSA:
 
 
     def decrypt(self):
+        print("masuk decrypt")
         list_c = split_string_into_list_of_length_n(self.cipher, len(str(self.n)))
         
         m = ''
@@ -122,7 +123,6 @@ class RSA:
         m_teks = ''
         for i in list_m:
             m_teks += chr(int(i))
-        
         
         print(f"Plain hasil dekripsi : {m_teks}")
         self.plain = m_teks

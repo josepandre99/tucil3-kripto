@@ -28,6 +28,7 @@ def coprime2(a, b):     # chech relative prime or not
 
 
 def split_string_into_list_of_length_n(string, n):
+    print("masuk split")
     return [string[i:i + n] for i in range(0, len(string), n)]
 
 
